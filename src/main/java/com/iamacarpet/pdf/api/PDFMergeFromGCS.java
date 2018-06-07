@@ -64,12 +64,13 @@ public class PDFMergeFromGCS extends HttpServlet {
   
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
 	  byte[] fdfData = java.util.Base64.getDecoder().decode(request.getParameter("fdf"));
+	  String responseBase64 = request.getParameter("base64");
 	  
 	  GcsFilename fileName = new GcsFilename(AppIdentityServiceFactory.getAppIdentityService().getDefaultGcsBucketName(), "pdf/" + request.getParameter("pdf_filename"));
 	  GcsInputChannel readChannel = gcsService.openPrefetchingReadChannel(fileName, 0, 2048);
 	  InputStream input_p = Channels.newInputStream(readChannel);
 			  
-	  FdfReader fdf_reader_p = new FdfReader(fdfData);
+	  FdfReader fdf_reader_p = new FdfReader(new String(fdfData, "utf-8").getBytes());
 	  PdfReader input_reader_p = new PdfReader(input_p);
 	  java.io.ByteArrayOutputStream ofs_p = new java.io.ByteArrayOutputStream();
 	  PdfStamper writer_p = null;
@@ -103,10 +104,17 @@ public class PDFMergeFromGCS extends HttpServlet {
 		  log.severe(e.toString());
 		  return;
 	  }
-
-	  response.setContentType("application/pdf");
-	  response.setCharacterEncoding("UTF-8");
+	  
 	  ofs_p.flush();
-	  response.getOutputStream().write(ofs_p.toByteArray());  
+
+	  if( responseBase64 != null ) {
+		  response.setContentType("text/plain");
+		  response.setCharacterEncoding("UTF-8");
+		  response.getOutputStream().write(java.util.Base64.getEncoder().encode(ofs_p.toByteArray()));
+	  } else {
+		  response.setContentType("application/pdf");
+		  response.setCharacterEncoding("UTF-8");
+		  response.getOutputStream().write(ofs_p.toByteArray());
+	  }
   }
 }

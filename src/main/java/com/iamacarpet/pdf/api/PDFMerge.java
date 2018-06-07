@@ -40,7 +40,7 @@ public class PDFMerge extends HttpServlet {
 	  byte[] fdfData = java.util.Base64.getDecoder().decode(request.getParameter("fdf"));
 	  byte[] pdfData = java.util.Base64.getDecoder().decode(request.getParameter("pdf"));
 			  
-	  FdfReader fdf_reader_p = new FdfReader(fdfData);
+	  FdfReader fdf_reader_p = new FdfReader(new String(fdfData, "utf-8").getBytes());
 	  PdfReader input_reader_p = new PdfReader(pdfData);
 	  java.io.ByteArrayOutputStream ofs_p = new java.io.ByteArrayOutputStream();
 	  PdfStamper writer_p = null;
